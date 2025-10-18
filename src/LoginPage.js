@@ -28,7 +28,7 @@ function LoginPage({ navigation }) {
     try {
       if (isLogin) {
         // ✅ LOGIN
-        const res = await axios.post('http://10.0.2.2:3000/login', {
+        const res = await axios.post('http://192.168.0.126:3000/login', {
           user_email: userEmail,
           user_pass: userPass,
         });
@@ -55,7 +55,7 @@ function LoginPage({ navigation }) {
           return;
         }
 
-        const res = await axios.post('http://10.0.2.2:3000/signup', {
+        const res = await axios.post('http://192.168.0.126:3000/signup', {
           user_name: userName,
           user_email: userEmail,
           user_pass: userPass,
@@ -103,7 +103,7 @@ function LoginPage({ navigation }) {
         />
 
         <TextInput
-          style={styles.input}
+          style={[styles.input, { color: '#000' }]}  // 🟢 Added color
           placeholder="Password"
           secureTextEntry
           placeholderTextColor="#999"
@@ -113,7 +113,7 @@ function LoginPage({ navigation }) {
 
         {!isLogin && (
           <TextInput
-            style={styles.input}
+            style={[styles.input, { color: '#000' }]}  // 🟢 Added color
             placeholder="Confirm Password"
             secureTextEntry
             placeholderTextColor="#999"

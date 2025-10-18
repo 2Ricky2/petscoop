@@ -19,7 +19,7 @@ export default function ViewUsersPage({ navigation }) {
 
   const fetchUsers = async () => {
     try {
-      const res = await axios.get('http://10.0.2.2:3000/users');
+      const res = await axios.get('http://192.168.0.126:3000/users');
       if (res.data.success) {
         setUsers(res.data.users);
       } else {
@@ -40,7 +40,7 @@ export default function ViewUsersPage({ navigation }) {
         style: 'destructive',
         onPress: async () => {
           try {
-            const res = await axios.delete(`http://10.0.2.2:3000/users/${id}`);
+            const res = await axios.delete(`http://192.168.0.126:3000/users/${id}`);
             if (res.data.success) {
               Alert.alert('Success', 'User deleted');
               fetchUsers();

@@ -22,7 +22,7 @@ function AdoptPage({ navigation }) {
 
   const fetchPets = async () => {
     try {
-      const res = await axios.get('http://10.0.2.2:3000/pets');
+      const res = await axios.get('http://192.168.0.126:3000/pets');
       if (res.data.success) {
         setPets(res.data.pets);
       } else {
