@@ -22,18 +22,20 @@ const storage = multer.diskStorage({
 });
 const upload = multer({ storage });
 
-// MySQL connection
+// ✅ MySQL connection (Railway DB = "railway")
 const db = mysql.createConnection({
   host: process.env.DB_HOST,
   user: process.env.DB_USER,
   password: process.env.DB_PASS,
-  database: process.env.DB_NAME,
+  database: process.env.DB_NAME || 'railway', // <-- fallback for safety
 });
 
 db.connect((err) => {
   if (err) console.error('❌ Database connection failed:', err);
-  else console.log('✅ MySQL Connected');
+  else console.log('✅ MySQL Connected to Railway DB');
 });
+
+// ========================= ROUTES =========================
 
 // Signup
 app.post('/signup', async (req, res) => {
@@ -41,26 +43,21 @@ app.post('/signup', async (req, res) => {
   if (!user_name || !user_email || !user_pass)
     return res.json({ success: false, message: 'All fields required' });
 
-  db.query(
-    'SELECT * FROM users WHERE user_email = ?',
-    [user_email],
-    async (err, result) => {
-      if (err) return res.json({ success: false, message: 'DB error' });
-      if (result.length > 0)
-        return res.json({ success: false, message: 'Email already exists' });
+  db.query('SELECT * FROM users WHERE user_email = ?', [user_email], async (err, result) => {
+    if (err) return res.json({ success: false, message: 'DB error' });
+    if (result.length > 0)
+      return res.json({ success: false, message: 'Email already exists' });
 
-      const hashed = await bcrypt.hash(user_pass, 10);
-      db.query(
-        'INSERT INTO users (user_name, user_email, user_pass, role) VALUES (?, ?, ?, ?)',
-        [user_name, user_email, hashed, 'user'],
-        (err2) => {
-          if (err2)
-            return res.json({ success: false, message: 'Insert error' });
-          return res.json({ success: true, message: 'User created' });
-        }
-      );
-    }
-  );
+    const hashed = await bcrypt.hash(user_pass, 10);
+    db.query(
+      'INSERT INTO users (user_name, user_email, user_pass, role) VALUES (?, ?, ?, ?)',
+      [user_name, user_email, hashed, 'user'],
+      (err2) => {
+        if (err2) return res.json({ success: false, message: 'Insert error' });
+        return res.json({ success: true, message: 'User created successfully!' });
+      }
+    );
+  });
 });
 
 // Login
@@ -69,31 +66,27 @@ app.post('/login', (req, res) => {
   if (!user_email || !user_pass)
     return res.json({ success: false, message: 'All fields required' });
 
-  db.query(
-    'SELECT * FROM users WHERE user_email = ?',
-    [user_email],
-    async (err, result) => {
-      if (err) return res.json({ success: false, message: 'DB error' });
-      if (result.length === 0)
-        return res.json({ success: false, message: 'User not found' });
+  db.query('SELECT * FROM users WHERE user_email = ?', [user_email], async (err, result) => {
+    if (err) return res.json({ success: false, message: 'DB error' });
+    if (result.length === 0)
+      return res.json({ success: false, message: 'User not found' });
 
-      const user = result[0];
-      const isMatch = await bcrypt.compare(user_pass, user.user_pass);
-      if (!isMatch)
-        return res.json({ success: false, message: 'Invalid password' });
+    const user = result[0];
+    const isMatch = await bcrypt.compare(user_pass, user.user_pass);
+    if (!isMatch)
+      return res.json({ success: false, message: 'Invalid password' });
 
-      res.json({
-        success: true,
-        message: 'Login successful',
-        user: {
-          id: user.user_id,
-          username: user.user_name,
-          email: user.user_email,
-          role: user.role,
-        },
-      });
-    }
-  );
+    res.json({
+      success: true,
+      message: 'Login successful',
+      user: {
+        id: user.user_id,
+        username: user.user_name,
+        email: user.user_email,
+        role: user.role,
+      },
+    });
+  });
 });
 
 // Upload image
@@ -127,6 +120,7 @@ app.post('/add-pet', (req, res) => {
   );
 });
 
+// Server listen
 const PORT = process.env.PORT || 3000;
 app.listen(PORT, () =>
   console.log(`🚀 Server running on http://localhost:${PORT}`)
